@@ -9,25 +9,26 @@ namespace AeonRegistryAPI.Extensions
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen( c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo
+                c.SwaggerDoc("v1", new OpenApiInfo()
                 {
                     Title = "Aeon Registry API",
                     Version = "v1",
                     Description = """
+    
+                    <img src="/images/AeonRegistryLogoBLK.png" height="120" />
+    
+                    ## Aeon Research Division
 
-                        <img src="/images/AeonRegistryLogoBLK.png" height="120" />
+                    Internal API for managing recovered artifacts and research data.
+                    Provides secure access for field researchers and analysts. 
 
-                        ## Aeon Research Division
+                    ### Key Features:
+                    - Site and Artifact Catalog
+                    - Research record submissions
+                    - Secure media storage
+                    - User role managment
 
-                        Internal API for managing recovered artifacts and research data.
-                        Provides secure access for field researchers and analysts.
-
-                        ### Key Features:
-                        - Site and Artifact Catalog
-                        - Research record submissions
-                        - Secure media storage
-                        - User role management
-
+                    [Launch Public Test Site](/site/sites-map.html)
 
                     """,
                     Contact = new OpenApiContact
