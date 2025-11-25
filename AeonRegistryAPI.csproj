@@ -7,6 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="Endpoints\Home\HomeEndpoints.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Models\Request\" />
     <Folder Include="wwwroot\images\" />
   </ItemGroup>
 

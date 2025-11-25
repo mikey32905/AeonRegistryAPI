@@ -1,4 +1,6 @@
 
+using AeonRegistryAPI.Endpoints.Home;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -16,17 +18,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 
-app.MapGet("/api/welcome", () =>
-{
-    var response = new
-    {
-        Message = "Welcome to the Aeon Registry API",
-        Version = "1.0.0",
-        TimeOnly = DateTime.Now.ToString("T")
-    };
-
-    return Results.Ok(response);
- })   .WithName("Welcome Message");
+app.MapHomeEndpoints();
 
 app.Run();
 
