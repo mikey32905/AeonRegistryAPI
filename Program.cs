@@ -1,7 +1,10 @@
 
 using AeonRegistryAPI.Data;
+using AeonRegistryAPI.Endpoints.CustomIdentityEndpoints;
 using AeonRegistryAPI.Endpoints.Home;
+using AeonRegistryAPI.Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 
 ///Build Section of API
@@ -29,6 +32,9 @@ builder.Services.AddIdentityApiEndpoints<ApplicationUser>(options =>{
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
 
+//Email Sender Service
+builder.Services.AddTransient<IEmailSender, ConsoleEmailService>();
+
 //enable validation for minimal APIs
 builder.Services.AddValidation();
 
@@ -51,6 +57,7 @@ var authRouteGroup = app.MapGroup("/api/auth")
     .WithTags("Admin");
 authRouteGroup.MapIdentityApi<ApplicationUser>();
 
+app.MapCustomIdentityEndpoints();
 app.MapHomeEndpoints();
 
 app.Run();
