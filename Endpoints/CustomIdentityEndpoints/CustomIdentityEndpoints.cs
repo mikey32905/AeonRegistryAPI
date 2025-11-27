@@ -1,6 +1,7 @@
 ﻿using AeonRegistryAPI.Endpoints.CustomIdentityEndpoints.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Text;
@@ -20,33 +21,39 @@ namespace AeonRegistryAPI.Endpoints.CustomIdentityEndpoints
             group.MapPost("/register-admin", RegisterUser)
                 .WithName("RegisterAdmin")
                 .WithSummary("Register a User")
-                .WithDescription("Registers a user. User must have admin role.");
-            //.RequireAuthorization("AdminPolicy");
+                .WithDescription("Registers a user. User must have admin role.")
+                .Produces(StatusCodes.Status200OK)
+                .Produces(StatusCodes.Status400BadRequest);
 
-            //step 3 - implement route handler
+            group.MapPost("reset-password", ResetPassword)
+                  .WithName("ResetPassword")
+                  .WithDescription("Custom Reset Password for a user")
+                  .WithSummary("Custom Reset Password")
+                  .Produces(StatusCodes.Status200OK)
+                  .Produces(StatusCodes.Status400BadRequest);
 
-            //step 4 - return route
             return route;
         }
 
-        private static async Task<IResult> RegisterUser(RegisterUserRequest dto, 
+        private static async Task<IResult> RegisterUser(RegisterUserRequest request,
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
             IEmailSender emailSender,
             IConfiguration config)
         {
+
             //see if useremail sent in already exists
-            if (await userManager.FindByEmailAsync(dto.Email) is not null)
+            if (await userManager.FindByEmailAsync(request.Email) is not null)
             {
-                return Results.BadRequest(new { Error = $"User with email {dto.Email} already exists." });
+                return Results.BadRequest(new { Error = $"User with email {request.Email} already exists." });
             }
 
             var user = new ApplicationUser
             {
-                UserName = dto.Email,
-                Email = dto.Email,
-                FirstName = dto.FirstName,
-                LastName = dto.LastName
+                UserName = request.Email,
+                Email = request.Email,
+                FirstName = request.FirstName,
+                LastName = request.LastName
             };
 
             var tempPassword = "TempPassword123!"; //Meet the password requirements  (generate in real world).
@@ -71,18 +78,61 @@ namespace AeonRegistryAPI.Endpoints.CustomIdentityEndpoints
             var baseUrl = config["BaseURL"] ?? "https://localhost:7008";
 
             await emailSender.SendEmailAsync(
-                dto.Email!,
+                request.Email!,
                 "Welcome to the Aeon Registry",
                 $"""
                 Your account has been created. Please change your password by visiting: {baseUrl}/Setpassword.html
 
-                {baseUrl}/Setpassword.html?email={dto.Email}&resetCode={encodedToken}
+                {baseUrl}/Setpassword.html?email={request.Email}&resetCode={encodedToken}
 
                 """
                 );
 
-            return Results.Ok(new {Message = $"User {user.Email} created. Password reset link sent."});
+            return Results.Ok(new { Message = $"User {user.Email} created. Password reset link sent." });
         }
 
+        private static async Task<IResult> ResetPassword(
+            ResetPasswordRequest request,
+            UserManager<ApplicationUser> userManager)
+        {
+            if (string.IsNullOrEmpty(request.Email) ||
+                string.IsNullOrEmpty(request.ResetCode) ||
+                string.IsNullOrEmpty(request.NewPassword))
+            {
+                return Results.BadRequest(new { Error = "All Fields are Required!" });
+            }
+
+            //find the user
+            var user = await userManager.FindByEmailAsync(request.Email);
+
+            if (user is null)
+            {
+                return Results.BadRequest(new { Error = "User not found!" });
+            }
+
+            try
+            {
+                var decodedToken = Encoding.UTF8.GetString(
+                    WebEncoders.Base64UrlDecode(request.ResetCode));
+
+                var result = await userManager.ResetPasswordAsync(user, decodedToken, request.NewPassword);
+
+                if (result.Succeeded)
+                {
+                    return Results.Ok(new { Message = "Password reset successful!" });
+                }
+
+                return Results.BadRequest(new { Message = "Error" });
+            }
+            catch(FormatException)
+            {
+                return Results.BadRequest(new { Message = "Invalid Token" });
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(new { Message = $"Error: {ex.Message}" });
+            }
+        }
     }
-}
+    }
+
