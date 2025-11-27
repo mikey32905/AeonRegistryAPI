@@ -1,9 +1,12 @@
 ﻿using AeonRegistryAPI.Endpoints.CustomIdentityEndpoints.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.EntityFrameworkCore.Query;
+using System.Security.Claims;
 using System.Text;
 
 namespace AeonRegistryAPI.Endpoints.CustomIdentityEndpoints
@@ -19,18 +22,18 @@ namespace AeonRegistryAPI.Endpoints.CustomIdentityEndpoints
 
             //step 2 - Make an endpoint
             group.MapPost("/register-admin", RegisterUser)
-                .WithName("RegisterAdmin")
-                .WithSummary("Register a User")
-                .WithDescription("Registers a user. User must have admin role.")
-                .Produces(StatusCodes.Status200OK)
-                .Produces(StatusCodes.Status400BadRequest);
+                 .WithName("RegisterAdmin")
+                 .WithSummary("Register a User")
+                 .WithDescription("Registers a user. User must have admin role.")
+                 .Produces(StatusCodes.Status200OK)
+                 .Produces(StatusCodes.Status400BadRequest);
 
             group.MapPost("/reset-password", ResetPassword)
-                  .WithName("ResetPassword")
-                  .WithDescription("Custom Reset Password for a user")
-                  .WithSummary("Custom Reset Password")
-                  .Produces(StatusCodes.Status200OK)
-                  .Produces(StatusCodes.Status400BadRequest);
+                 .WithName("ResetPassword")
+                 .WithDescription("Custom Reset Password for a user")
+                 .WithSummary("Custom Reset Password")
+                 .Produces(StatusCodes.Status200OK)
+                 .Produces(StatusCodes.Status400BadRequest);
 
             group.MapPost("/forgot-password", ForgotPassword)
                 .WithName("ForgotPassword")
@@ -39,6 +42,32 @@ namespace AeonRegistryAPI.Endpoints.CustomIdentityEndpoints
                 .Produces(StatusCodes.Status200OK)
                 .Produces(StatusCodes.Status400BadRequest);
 
+            group.MapGet("/manage/profile", GetProfileInfo)
+                 .WithName("GetProfile")
+                 .WithDescription("Get current user profile info")
+                 .WithSummary("Custom the current user profile")
+                 .Produces(StatusCodes.Status200OK)
+                 .Produces(StatusCodes.Status404NotFound)
+                 .Produces(StatusCodes.Status401Unauthorized)
+                 .RequireAuthorization();
+
+            group.MapPut("/manage/profile", UpdateProfileInfo)
+                 .WithName("UpdateProfile")
+                 .WithDescription("Update the current profile")
+                 .WithSummary("Allows user to update the current user profile")
+                 .Produces(StatusCodes.Status200OK)
+                 .Produces(StatusCodes.Status404NotFound)
+                 .Produces(StatusCodes.Status401Unauthorized)
+                 .RequireAuthorization();
+
+            group.MapGet("/manage/users", ListAllUsers)
+                 .WithName("ListUsers")
+                 .WithDescription("List All Users")
+                 .WithSummary("Lists all registered users")
+                 .RequireAuthorization()
+                 .Produces<IEnumerable<UserProfileResponse>>(StatusCodes.Status200OK)
+                 .Produces(StatusCodes.Status401Unauthorized);
+ 
             return route;
         }
 
@@ -180,6 +209,77 @@ namespace AeonRegistryAPI.Endpoints.CustomIdentityEndpoints
 
             return Results.Ok(new { Message = "If the user exists, a forgot password link will be sent." });
         }
+
+        private static async Task<IResult> GetProfileInfo(ClaimsPrincipal principal,
+            UserManager<ApplicationUser> userManager)
+        {
+            var user = await userManager.GetUserAsync(principal);
+
+            if (user is null)
+            {
+                return Results.NotFound();
+            }
+
+            var response = new UserProfileResponse
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                FullName = user.FullName
+            };
+
+            return Results.Ok(response);
+        }
+
+
+        private static async Task<IResult> UpdateProfileInfo(UpdateUserProfileRequest request,
+            ClaimsPrincipal principal,
+            UserManager<ApplicationUser> userManager)
+        {
+            //validate Inputs
+            if (string.IsNullOrEmpty(request.FirstName) ||
+                 string.IsNullOrEmpty(request.LastName))
+            {
+                return Results.BadRequest(new { Error = "First and Last Name are Required!" });
+            }
+
+            var user = await userManager.GetUserAsync(principal);
+
+            if (user is null)
+            {
+                return Results.NotFound();
+            }
+
+            user.FirstName = request.FirstName;
+            user.LastName = request.LastName;
+
+            var result = await userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+            {
+                return Results.BadRequest(new { Message = $"Update Failed: {result.Errors}" });
+            }
+
+            return Results.Ok(new { Message = "Profile updated successfully!"});
+
+        }
+
+        private static async Task<IResult> ListAllUsers(UserManager<ApplicationUser> userManager)
+        {
+            var users = userManager.Users
+                .Select(u => new UserProfileResponse{
+                   Id = u.Id,
+                   FirstName = u.FirstName,
+                   LastName = u.LastName,
+                   FullName = u.FullName,
+                   Email = u.Email
+                }).ToList();
+
+
+            return Results.Ok(users);
+        }
+
     }
 }
 
