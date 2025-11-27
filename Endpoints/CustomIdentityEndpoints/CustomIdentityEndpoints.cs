@@ -25,12 +25,19 @@ namespace AeonRegistryAPI.Endpoints.CustomIdentityEndpoints
                 .Produces(StatusCodes.Status200OK)
                 .Produces(StatusCodes.Status400BadRequest);
 
-            group.MapPost("reset-password", ResetPassword)
+            group.MapPost("/reset-password", ResetPassword)
                   .WithName("ResetPassword")
                   .WithDescription("Custom Reset Password for a user")
                   .WithSummary("Custom Reset Password")
                   .Produces(StatusCodes.Status200OK)
                   .Produces(StatusCodes.Status400BadRequest);
+
+            group.MapPost("/forgot-password", ForgotPassword)
+                .WithName("ForgotPassword")
+                .WithDescription("Custom Forgot Password flow")
+                .WithSummary("Custom Forgot Password")
+                .Produces(StatusCodes.Status200OK)
+                .Produces(StatusCodes.Status400BadRequest);
 
             return route;
         }
@@ -76,14 +83,15 @@ namespace AeonRegistryAPI.Endpoints.CustomIdentityEndpoints
 
             // send email to user to change password
             var baseUrl = config["BaseURL"] ?? "https://localhost:7008";
+            var setPasswordLink = $"{baseUrl}/register-admin.html?email={user.Email}&resetCode={encodedToken}";
 
             await emailSender.SendEmailAsync(
                 request.Email!,
                 "Welcome to the Aeon Registry",
                 $"""
-                Your account has been created. Please change your password by visiting: {baseUrl}/Setpassword.html
+                Your account has been created. Please change your password by visiting: 
 
-                {baseUrl}/Setpassword.html?email={request.Email}&resetCode={encodedToken}
+                {setPasswordLink}
 
                 """
                 );
@@ -124,7 +132,7 @@ namespace AeonRegistryAPI.Endpoints.CustomIdentityEndpoints
 
                 return Results.BadRequest(new { Message = "Error" });
             }
-            catch(FormatException)
+            catch (FormatException)
             {
                 return Results.BadRequest(new { Message = "Invalid Token" });
             }
@@ -133,6 +141,45 @@ namespace AeonRegistryAPI.Endpoints.CustomIdentityEndpoints
                 return Results.BadRequest(new { Message = $"Error: {ex.Message}" });
             }
         }
+
+        private static async Task<IResult> ForgotPassword(ForgotPasswordRequest request,
+            UserManager<ApplicationUser> userManager,
+            IEmailSender emailSender,
+            IConfiguration config)
+        {
+            if (string.IsNullOrEmpty(request.Email))
+            {
+                return Results.BadRequest(new { Message = "Email address is required." });
+            }
+
+            var user = await userManager.FindByEmailAsync(request.Email);
+
+            if (user is null)
+            {
+                return Results.Ok(new { Message = "If the user exists, a forgot password link will be sent." });
+            }
+
+            //generate password reset token
+            var token = await userManager.GeneratePasswordResetTokenAsync(user);
+            var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+
+            // send email to user to change password
+            var baseUrl = config["BaseURL"] ?? "https://localhost:7008";
+            var resetLink = $"{baseUrl}/reset-password.html?email={user.Email}&resetCode={encodedToken}";
+
+            await emailSender.SendEmailAsync(
+                request.Email!,
+                "Reset Your Password",
+                $"""
+                To reset your password, use the link:
+
+                {resetLink}
+
+                """
+                );
+
+            return Results.Ok(new { Message = "If the user exists, a forgot password link will be sent." });
+        }
     }
-    }
+}
 
