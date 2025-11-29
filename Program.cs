@@ -1,5 +1,6 @@
 
 using AeonRegistryAPI.Data;
+using AeonRegistryAPI.Data.AeonRegistryAPI.Data;
 using AeonRegistryAPI.Endpoints.CustomIdentityEndpoints;
 using AeonRegistryAPI.Endpoints.Home;
 using AeonRegistryAPI.Services;
@@ -45,6 +46,10 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
+using (var scope = app.Services.CreateScope())
+{
+    await DataSeed.ManageDataAsync(scope.ServiceProvider);
+}
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

@@ -1,11 +1,8 @@
 ﻿using AeonRegistryAPI.Endpoints.CustomIdentityEndpoints.Models;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.EntityFrameworkCore.Query;
 using System.Security.Claims;
 using System.Text;
 
