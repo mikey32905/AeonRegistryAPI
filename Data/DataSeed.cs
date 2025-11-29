@@ -122,14 +122,14 @@
                 // List of site-based JSON files
                 var files = new[]
                 {
-             "catalogRecords.atlantis.json",
-             "catalogRecords.sahara.json",
-             "catalogRecords.andes.json",
-             "catalogRecords.antarctica.json",
-             "catalogRecords.gobekli.json",
-             "catalogRecords.yonaguni.json",
-             "catalogRecords.kailash.json"
-         };
+                "catalogRecords.atlantis.json",
+                "catalogRecords.sahara.json",
+                "catalogRecords.andes.json",
+                "catalogRecords.antarctica.json",
+                "catalogRecords.gobekli.json",
+                "catalogRecords.yonaguni.json",
+                "catalogRecords.kailash.json"
+            };
 
                 foreach (var fileName in files)
                 {
@@ -178,7 +178,7 @@
                             SubmittedById = submittedBy.Id,
                             VerifiedById = verifiedBy?.Id,
                             Status = recordImport.Status,
-                            SubmittedAt = recordImport.DateSubmitted
+                            DateSubmitted = recordImport.DateSubmitted
                         };
 
                         // Add notes
@@ -197,7 +197,7 @@
                             {
                                 AuthorId = author.Id,
                                 Content = noteImport.Content,
-                                Created = noteImport.Created
+                                DateCreated = noteImport.Created
                             });
                         }
 
@@ -279,23 +279,23 @@
             {
                 // Reset sequence for Sites table
                 await context.Database.ExecuteSqlRawAsync(@"
-     SELECT setval(
-         pg_get_serial_sequence('""Sites""', 'Id'),
-         COALESCE(MAX(""Id""), 1)
-     ) FROM ""Sites"";");
+        SELECT setval(
+            pg_get_serial_sequence('""Sites""', 'Id'),
+            COALESCE(MAX(""Id""), 1)
+        ) FROM ""Sites"";");
 
                 // Optionally repeat for other tables that use explicit IDs in seed data:
                 await context.Database.ExecuteSqlRawAsync(@"
-     SELECT setval(
-         pg_get_serial_sequence('""Artifacts""', 'Id'),
-         COALESCE(MAX(""Id""), 1)
-     ) FROM ""Artifacts"";");
+        SELECT setval(
+            pg_get_serial_sequence('""Artifacts""', 'Id'),
+            COALESCE(MAX(""Id""), 1)
+        ) FROM ""Artifacts"";");
 
                 await context.Database.ExecuteSqlRawAsync(@"
-     SELECT setval(
-         pg_get_serial_sequence('""CatalogRecords""', 'Id'),
-         COALESCE(MAX(""Id""), 1)
-     ) FROM ""CatalogRecords"";");
+        SELECT setval(
+            pg_get_serial_sequence('""CatalogRecords""', 'Id'),
+            COALESCE(MAX(""Id""), 1)
+        ) FROM ""CatalogRecords"";");
 
                 Console.WriteLine("✅ PostgreSQL identity sequences reset successfully.");
             }
@@ -415,4 +415,4 @@
             #endregion seed roles and users
         }
     }
-}
+   }

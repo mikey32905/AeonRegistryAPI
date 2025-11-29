@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
+using System.Text.Json.Serialization;
 
 namespace AeonRegistryAPI.Models
 {
@@ -21,7 +22,7 @@ namespace AeonRegistryAPI.Models
         public DateTime DateDiscovered { get; set; }
 
         [Required]
-        public ArtifactType Type { get; set; } //artifact type enum
+        public string? Type { get; set; } //artifact type enum as string
 
         [Required]
         public int SiteId { get; set; }
@@ -33,6 +34,6 @@ namespace AeonRegistryAPI.Models
         //navigation properties for relationships
         public List<ArtifactMediaFile> MediaFiles { get; set; } = [];
 
-        public List<CatalogRecord> CatalogRecords { get; set; } = new();
+        public List<CatalogRecord> CatalogRecords { get; set; } = [];
     }
 }

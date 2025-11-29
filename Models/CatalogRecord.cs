@@ -20,7 +20,7 @@
         public string Status { get; set; } =  Enums.CatalogStatus.Draft.ToString();
 
         [Required]
-        public DateTime SubmittedAt { get; set; } = DateTime.UtcNow;
+        public DateTime DateSubmitted { get; set; } = DateTime.UtcNow;
 
         public ICollection<CatalogNote> Notes { get; set; } = [null!];
     }
