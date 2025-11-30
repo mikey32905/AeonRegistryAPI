@@ -1,6 +1,3 @@
-
-using AeonRegistryAPI.Data;
-using AeonRegistryAPI.Data.AeonRegistryAPI.Data;
 using AeonRegistryAPI.Endpoints.CustomIdentityEndpoints;
 using AeonRegistryAPI.Endpoints.Home;
 using AeonRegistryAPI.Services;

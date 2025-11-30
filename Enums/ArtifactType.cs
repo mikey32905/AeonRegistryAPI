@@ -3,7 +3,7 @@
 namespace AeonRegistryAPI.Enums
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum ArtifactType
+     public enum ArtifactType
     {
         Weapon = 1,
         EnergySource = 2,
