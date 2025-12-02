@@ -11,10 +11,10 @@
         [Required]
         public string SubmittedById { get; set; } = string.Empty; //foreign key to ApplicationUser
 
-        public ApplicationUser SubmittedBy { get; set; }
+        public ApplicationUser SubmittedBy { get; set; } = null!;
 
         public string? VerifiedById { get; set; } //foreign key to ApplicationUser
-        public ApplicationUser? VerifiedBy { get; set; }
+        public ApplicationUser? VerifiedBy { get; set; } = null!;
 
         [Required]
         public string Status { get; set; } =  Enums.CatalogStatus.Draft.ToString();
@@ -22,6 +22,6 @@
         [Required]
         public DateTime DateSubmitted { get; set; } = DateTime.UtcNow;
 
-        public ICollection<CatalogNote> Notes { get; set; } = [null!];
+        public ICollection<CatalogNote> Notes { get; set; } = [];
     }
 }

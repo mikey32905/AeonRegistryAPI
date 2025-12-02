@@ -3,6 +3,7 @@ using System;
 using AeonRegistryAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AeonRegistryAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251201212317_007-updatedArtifactModel")]
+    partial class _007updatedArtifactModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -422,7 +425,7 @@ namespace AeonRegistryAPI.Migrations
             modelBuilder.Entity("AeonRegistryAPI.Models.Artifact", b =>
                 {
                     b.HasOne("AeonRegistryAPI.Models.Site", "Site")
-                        .WithMany()
+                        .WithMany("Artifacts")
                         .HasForeignKey("SiteId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -560,6 +563,11 @@ namespace AeonRegistryAPI.Migrations
             modelBuilder.Entity("AeonRegistryAPI.Models.CatalogRecord", b =>
                 {
                     b.Navigation("Notes");
+                });
+
+            modelBuilder.Entity("AeonRegistryAPI.Models.Site", b =>
+                {
+                    b.Navigation("Artifacts");
                 });
 #pragma warning restore 612, 618
         }

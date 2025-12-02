@@ -123,7 +123,7 @@ namespace AeonRegistryAPI.Data
              "catalogRecords.atlantis.json",
              "catalogRecords.sahara.json",
              "catalogRecords.andes.json",
-             "catalogRecords.antarctica.json",
+             "catalogRecords.Antarctica.json",
              "catalogRecords.gobekli.json",
              "catalogRecords.yonaguni.json",
              "catalogRecords.kailash.json"

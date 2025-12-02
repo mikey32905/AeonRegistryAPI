@@ -21,13 +21,10 @@ namespace AeonRegistryAPI.Models
 
         public DateTime DateDiscovered { get; set; }
 
-        [Required]
         public string? Type { get; set; } //artifact type enum as string
 
         [Required]
         public int SiteId { get; set; }
-
-
         public Site? Site { get; set; }
 
 
