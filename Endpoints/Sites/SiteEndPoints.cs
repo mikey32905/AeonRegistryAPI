@@ -11,7 +11,7 @@ namespace AeonRegistryAPI.Endpoints.Sites
         public static IEndpointRouteBuilder MapSiteEndpoints(this IEndpointRouteBuilder route) 
         {
             //first id the group
-            var publicGroup = route.MapGroup("/api/sites")
+            var publicGroup = route.MapGroup("/api/public/sites")
                 .AllowAnonymous()
                 .WithSummary("Public Site Endpoints")
                 .WithDescription("Endpoints that expose public site data")
@@ -34,6 +34,30 @@ namespace AeonRegistryAPI.Endpoints.Sites
                 .WithSummary("Get Site By Id (Public)")
                 .WithDescription("Returns a single site with public data.");
 
+            var privateGroup = route.MapGroup("/api/private/sites")
+                .RequireAuthorization()
+                .WithTags("Sites - Private")
+                .WithSummary("Authorized Site Endpoints")
+                .WithDescription("Endpoints that require authentication.");
+
+            privateGroup.MapGet("", GetAllPrivateSites)
+                .WithName(nameof(GetAllPrivateSites))
+                .Produces<List<PrivateSiteResponse>>(StatusCodes.Status200OK)
+                .Produces(StatusCodes.Status401Unauthorized)
+                .Produces(StatusCodes.Status403Forbidden)
+                .Produces(StatusCodes.Status500InternalServerError)
+                .WithSummary("Get All Sites - Private")
+                .WithDescription("Returns all sites with info that requires authorization.");
+
+            privateGroup.MapGet("/{id:int}", GetPrivateSiteById)
+                .WithName(nameof(GetPrivateSiteById))
+                .Produces<PrivateSiteResponse>(StatusCodes.Status200OK)
+                .Produces(StatusCodes.Status401Unauthorized)
+                .Produces(StatusCodes.Status403Forbidden)
+                .Produces(StatusCodes.Status500InternalServerError)
+                .WithSummary("Get Site By Id - Private")
+                .WithDescription("Returns a single site and shows info that requires authorization.");
+
             return route;
         }
 
@@ -51,6 +75,25 @@ namespace AeonRegistryAPI.Endpoints.Sites
             ISiteService service, CancellationToken ct)
         {
             var site = await service.GetPublicSiteByIdAsync(Id, ct);
+
+            if (site is null)
+            {
+                return TypedResults.NotFound();
+            }
+
+            return TypedResults.Ok(site);
+        }
+
+
+        private static async Task<Ok<List<PrivateSiteResponse>>> GetAllPrivateSites(ISiteService service, CancellationToken ct)
+        {
+            return TypedResults.Ok(await service.GetAllSitesPrivateAsync(ct));
+        }
+
+        private static async Task<Results<Ok<PrivateSiteResponse>, NotFound>> GetPrivateSiteById(int Id,
+            ISiteService service, CancellationToken ct)
+        {
+            var site = await service.GetPrivateSiteByIdAsync(Id, ct);
 
             if (site is null)
             {
