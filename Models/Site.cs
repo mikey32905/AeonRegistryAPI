@@ -25,6 +25,5 @@
         [MaxLength(2000)]
         public string? AeonNarrative { get; set; }
 
-        //public List<Artifact> Artifacts { get; set; } = [];
     }
 }
