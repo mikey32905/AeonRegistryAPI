@@ -58,6 +58,37 @@ namespace AeonRegistryAPI.Endpoints.Sites
                 .WithSummary("Get Site By Id - Private")
                 .WithDescription("Returns a single site and shows info that requires authorization.");
 
+            privateGroup.MapPost("", CreateSite)
+                .WithName(nameof(CreateSite))
+                .Accepts<CreateSiteRequest>("application/json")
+                .Produces<PrivateSiteResponse>(StatusCodes.Status201Created)
+                .ProducesValidationProblem()
+                .Produces(StatusCodes.Status401Unauthorized)
+                .Produces(StatusCodes.Status403Forbidden)
+                .Produces(StatusCodes.Status500InternalServerError)
+                .WithSummary("Create a site")
+                .WithDescription("Create a site. requires authentication.");
+
+            privateGroup.MapPut("/{id:int}", UpdateSite)
+                .WithName(nameof(UpdateSite))
+                .Accepts<UpdateSiteRequest>("application/json")
+                .Produces(StatusCodes.Status204NoContent)
+                .Produces(StatusCodes.Status401Unauthorized)
+                .Produces(StatusCodes.Status404NotFound)
+                .Produces(StatusCodes.Status500InternalServerError)
+                .ProducesValidationProblem()
+                .WithSummary("Update an existing site")
+                .WithDescription("Update an existing site. requires authentication.");
+
+            privateGroup.MapDelete("/{id:int}", DeleteSite)
+                .WithName(nameof(DeleteSite))
+                .Produces(StatusCodes.Status204NoContent)
+                .Produces(StatusCodes.Status401Unauthorized)
+                .Produces(StatusCodes.Status404NotFound)
+                .Produces(StatusCodes.Status500InternalServerError)
+                .WithSummary("Delete an existing site")
+                .WithDescription("Delete an existing site. requires authentication."); 
+
             return route;
         }
 
@@ -101,6 +132,28 @@ namespace AeonRegistryAPI.Endpoints.Sites
             }
 
             return TypedResults.Ok(site);
+        }
+
+        private static async Task<Results<Created<PrivateSiteResponse>, ValidationProblem>> CreateSite(CreateSiteRequest request,
+            ISiteService service,
+            CancellationToken ct)
+        {
+            var createdSite = await service.CreateSiteAsync(request, ct);
+            return TypedResults.Created($"/api/private/sites/{createdSite.Id}", createdSite);
+        }
+
+        private static async Task<Results<NoContent, NotFound, ValidationProblem>> UpdateSite (int Id,
+            UpdateSiteRequest request, ISiteService service, CancellationToken ct)
+        {
+            var success = await service.UpdateSiteAsync(Id, request, ct);
+            return success ? TypedResults.NoContent() : TypedResults.NotFound();
+        }
+
+        private static async Task<Results<NoContent, NotFound, ValidationProblem>> DeleteSite (int Id,
+            ISiteService service, CancellationToken ct)
+        {
+            var success = await service.DeleteSiteAsync(Id, ct);
+            return success ? TypedResults.NoContent() : TypedResults.NotFound();
         }
 
     }
