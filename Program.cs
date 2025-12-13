@@ -1,3 +1,4 @@
+using AeonRegistryAPI.Endpoints.Artifact;
 using AeonRegistryAPI.Endpoints.CustomIdentityEndpoints;
 using AeonRegistryAPI.Endpoints.Home;
 using AeonRegistryAPI.Endpoints.Sites;
@@ -37,7 +38,7 @@ builder.Services.AddTransient<IEmailSender, ConsoleEmailService>();
 
 //custom services
 builder.Services.AddScoped<ISiteService, SiteService>();
-
+builder.Services.AddScoped<IArtifactMediaFileService, ArtifactMediaFileService>();
 
 //enable validation for minimal APIs
 builder.Services.AddValidation();
@@ -67,6 +68,7 @@ authRouteGroup.MapIdentityApi<ApplicationUser>();
 
 app.MapCustomIdentityEndpoints();
 app.MapSiteEndpoints();
+app.MapArtifactMediaFileEndpoints();
 app.MapHomeEndpoints();
 
 app.Run();
