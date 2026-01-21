@@ -98,6 +98,31 @@ namespace AeonRegistryAPI.Services
                 }).ToListAsync(ct);
         }
 
+        public async Task<PrivateArtifactResponse?> GetPrivateArtifactByIdAsync(int id, CancellationToken ct)
+        {
+            var artifact = await db.Artifacts
+                .AsNoTracking()
+                .Where(a => a.Id == id)
+                .Select(a => new PrivateArtifactResponse
+                {
+                    Id = a.Id,
+                    Name = a.Name!,
+                    CatalogNumber = a.CatalogNumber!,
+                    PublicNarrative = a.PublicNarrative,
+                    Description = a.Description,
+                    DateDiscovered = a.DateDiscovered,
+                    Type = a.Type.ToString(),
+                    SiteName = a.Site!.Name!,
+                    PrimaryImageUrl = a.MediaFiles
+                    .Where(m => m.IsPrimary)
+                    .Select(m => $"/api/public/artifacts/images/{m.Id}")
+                    .FirstOrDefault()
+                })
+                .FirstOrDefaultAsync(ct);
+
+            return artifact;
+        }
+
         //public
 
         public async Task<List<PublicArtifactResponse>> GetPublicArtifactsAsync(CancellationToken ct)
@@ -156,5 +181,31 @@ namespace AeonRegistryAPI.Services
                  }).ToListAsync(ct);
 
         }
+
+        public async Task<PublicArtifactResponse?> GetPublicArtifactByIdAsync(int id, CancellationToken ct)
+        {
+            var artifact = await db.Artifacts
+                .AsNoTracking()
+                .Where(a => a.Id == id)
+                .Select(a => new PublicArtifactResponse
+                {
+                    Id = a.Id,
+                    Name = a.Name!,
+                    CatalogNumber = a.CatalogNumber!,
+                    PublicNarrative = a.PublicNarrative,
+                    DateDiscovered = a.DateDiscovered,
+                    Type = a.Type.ToString(),
+                    SiteName = a.Site!.Name!,
+                    PrimaryImageUrl = a.MediaFiles
+                    .Where(m => m.IsPrimary)
+                    .Select(m => $"/api/public/artifacts/images/{m.Id}")
+                    .FirstOrDefault()
+                })
+                .FirstOrDefaultAsync(ct);
+
+            return artifact;
+        }
+
+
     }
 }
