@@ -5,6 +5,7 @@ namespace AeonRegistryAPI.Services
 {
     public class ArtifactService(ApplicationDbContext db) : IArtifactService
     {
+        //private
         public async Task<PrivateArtifactResponse?> CreateArtifactAsync(CreateArtifactRequest request, CancellationToken ct)
         {
             var site = await db.Sites.FindAsync(request.SiteId, ct);
@@ -48,7 +49,6 @@ namespace AeonRegistryAPI.Services
             };
         }
 
-        //private
         public async Task<List<PrivateArtifactResponse>> GetPrivateArtifactsAsync(CancellationToken ct)
         {
             return await db.Artifacts
@@ -121,6 +121,57 @@ namespace AeonRegistryAPI.Services
                 .FirstOrDefaultAsync(ct);
 
             return artifact;
+        }
+
+        public async Task<bool> UpdateArtifactAsync(int artifactId, UpdateArtifactRequest request, CancellationToken ct)
+        {
+            var siteExists = await db.Sites
+                .AsNoTracking()
+                .AnyAsync(s => s.Id == request.SiteId);
+
+            if (!siteExists)
+            {
+                return false;
+            }
+
+            var artifact = await db.Artifacts.FindAsync(artifactId, ct);
+
+            if (artifact == null)
+            {
+                return false;
+            }
+
+            if (!Enum.TryParse<ArtifactType>(request.Type, true, out var type))
+            {
+                throw new ArgumentException("Inavlid artifact type.");
+            }
+
+            artifact.Name = request.Name;
+            artifact.CatalogNumber = request.CatalogNumber;
+            artifact.Description = request.Description;
+            artifact.PublicNarrative = request.PublicNarrative;
+            artifact.Type = request.Type;
+            artifact.SiteId = request.SiteId;
+            artifact.DateDiscovered = request.DateDiscovered;
+
+            await db.SaveChangesAsync(ct);
+            return true;
+        }
+
+        public async Task<bool> DeleteArtifactAsync(int artifactId, CancellationToken ct)
+        {
+            var artifact = await db.Artifacts
+                .Include(a => a.MediaFiles)
+                .FirstOrDefaultAsync(a => a.Id == artifactId, ct);
+
+            if (artifact.MediaFiles != null && artifact.MediaFiles.Count > 0)
+            {
+                db.ArtifactMediaFiles.RemoveRange(artifact.MediaFiles);
+            }
+
+            db.Artifacts.Remove(artifact);
+            await db.SaveChangesAsync();
+            return true;
         }
 
         //public

@@ -1,6 +1,7 @@
 ﻿using AeonRegistryAPI.Filters;
 using AeonRegistryAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Http.HttpResults;
+using System.Net.NetworkInformation;
 
 namespace AeonRegistryAPI.Endpoints.Artifact
 {
@@ -62,8 +63,29 @@ namespace AeonRegistryAPI.Endpoints.Artifact
                 .WithSummary("Get Private Artifact by ID")
                 .WithDescription("Returns internal artifact details for authorized users.")
                 .Produces<PrivateArtifactResponse>(StatusCodes.Status200OK)
+                .ProducesValidationProblem()
                 .Produces(StatusCodes.Status404NotFound)
                 .Produces(StatusCodes.Status401Unauthorized)
+                .Produces(StatusCodes.Status500InternalServerError);
+
+            privateGroup.MapPut("/{id:int}", UpdateArtifact)
+                .WithName(nameof(UpdateArtifact))
+                .WithSummary("Update an existing artifact record")
+                .WithDescription("Updates an existing artifact record with private data")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesValidationProblem()
+                .Produces(StatusCodes.Status401Unauthorized)
+                .Produces(StatusCodes.Status404NotFound)
+                .Produces(StatusCodes.Status500InternalServerError);
+
+            privateGroup.MapDelete("/{id:int}", DeleteArtifactAsync)
+                .WithName(nameof(DeleteArtifactAsync))
+                .WithSummary("Delete artifact record")
+                .WithDescription("Deletes an artifact and its image")
+                .Produces(StatusCodes.Status204NoContent)
+                 .ProducesValidationProblem()
+                .Produces(StatusCodes.Status401Unauthorized)
+                .Produces(StatusCodes.Status404NotFound)
                 .Produces(StatusCodes.Status500InternalServerError);
 
             return route;
@@ -141,6 +163,38 @@ namespace AeonRegistryAPI.Endpoints.Artifact
             }
 
             return TypedResults.Ok(artifact);
+        }
+
+        private static async Task<Results<NoContent,NotFound, ValidationProblem>> UpdateArtifact (
+            UpdateArtifactRequest request,
+            IArtifactService service,
+            int id,
+            CancellationToken ct)
+        {
+            var updated = await service.UpdateArtifactAsync(id, request, ct);
+
+            if (!updated)
+            {
+                return TypedResults.NotFound();
+            }
+
+            return TypedResults.NoContent();
+
+        }
+
+        private static async Task<Results<NoContent, NotFound>> DeleteArtifactAsync(
+            int id,
+            IArtifactService service,
+            CancellationToken ct)
+        {
+            var deleted = await service.DeleteArtifactAsync(id, ct);
+
+            if (!deleted)
+            {
+                return TypedResults.NotFound();     
+            }
+
+            return TypedResults.NoContent();
         }
 
     }
