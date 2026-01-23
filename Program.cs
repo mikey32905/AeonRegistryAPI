@@ -65,7 +65,10 @@ app.UseMiddleware<BlockIdentityEndpoints>();
 
 var authRouteGroup = app.MapGroup("/api/auth")
     .WithTags("Admin");
+
 authRouteGroup.MapIdentityApi<ApplicationUser>();
+
+app.MapGet("/", () => Results.Redirect("/index.html"));
 
 app.MapCustomIdentityEndpoints();
 app.MapSiteEndpoints();
